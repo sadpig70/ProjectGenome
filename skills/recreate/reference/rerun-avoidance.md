@@ -55,7 +55,7 @@
 ### 3.2 `registry.json` (durable)
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "updated_at": "2026-06-12",
   "corpus_baseline": { "project_count": 48, "source": "corpus/" },
   "source_projects": {

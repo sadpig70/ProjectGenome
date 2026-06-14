@@ -61,6 +61,8 @@ ProjectGenome 저장소(시스템) 안에서 실행 명령은 스킬 **`recreate
 
 ## Quick start
 
+> **Requirements.** AI 런타임(예: Claude Code). 결정론 헬퍼 `scripts/`는 **Python 3.10+ (stdlib only, 외부 의존성 0)** — 별도 설치 불필요.
+
 ```bash
 # 0) 빈 registry로 시작 (.recreate/ 는 런타임 산출 디렉토리)
 mkdir -p .recreate
@@ -90,10 +92,12 @@ skills/recreate/                   실행 스킬 (SKILL.md + reference/ 5종)
 skills/pg/  skills/pgf/            AI-native 표기 + full-cycle 의존 스킬
 schemas/                           빈 데이터 계약 템플릿 (registry/gene/seed/scores)
 scripts/                           결정론 도구 (fingerprint · validate_projectgenome · aggregate_crossmodel)
+tests/                             결정론 헬퍼 unittest (stdlib only)
 corpus/                            ← 당신의 README 코퍼스를 여기에 (+ corpus/example/)
 examples/CASE-STUDY.md             익명 실증
 examples/example-run/              corpus/example 을 돌린 축약 산출 (성공 모습)
 RUNBOOK.md                         단계별 따라하기
+.github/workflows/ci.yml           CI (py_compile + unittest + validate, stdlib only)
 ```
 
 ## Documentation

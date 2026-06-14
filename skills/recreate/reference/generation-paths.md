@@ -48,13 +48,14 @@ def AI_distant_hybridize(inv, min_domain_distance=0.65) -> list[Candidate]:
 
 ```python
 def AI_layer_fusion(layer_shelf) -> list[Candidate]:
-    sensing  = AI_select_underused(layer_shelf["Sensing"])
-    evidence = AI_select_complementary(layer_shelf["Evidence"], sensing)
-    control  = AI_select_non_derivative(layer_shelf["Control"], sensing, evidence)
-    release  = AI_select_distant_domain(layer_shelf["Release"], control)
-    return [AI_synthesize_stack([sensing, evidence, control, release])]
+    sensing    = AI_select_underused(layer_shelf["Sensing"])
+    evidence   = AI_select_complementary(layer_shelf["Evidence"], sensing)
+    control    = AI_select_non_derivative(layer_shelf["Control"], sensing, evidence)
+    allocation = AI_select_non_derivative(layer_shelf["Allocation"], control)
+    release    = AI_select_distant_domain(layer_shelf["Release"], allocation)
+    return [AI_synthesize_stack([sensing, evidence, control, allocation, release])]
 ```
-- 정박: ContextCreep(Sensing) + ADPR(Evidence) + AfferentCore(Control) + LazarettoStage(Release) → "Boundary Release Stack".
+- 정박: ContextCreep(Sensing) + ADPR(Evidence) + AfferentCore(Control) + ReserveFlow(Allocation) + LazarettoStage(Release) → "Boundary Release Stack".
 
 ### 1.3 ConflictCompiler
 충돌하는 두 프로젝트를 일부러 붙여 새 tension을 만든다 (코퍼스의 L7_Tension을 *생성 도구로* 역전).

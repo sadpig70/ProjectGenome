@@ -563,19 +563,27 @@ def sha256_hex(text):
 ```
 ProjectGenome/
     README.md                  주 온보딩
+    RUNBOOK.md                 단계별 실행 가이드
     LICENSE                    MIT
     .gitignore                 런타임 산출(.recreate/runs, .pgf, scores) 제외
+    assets/                    projectgenome-hero.png
     docs/
         TECHNICAL-SPECIFICATION.md   ← 이 문서
+        CONCURRENCY-POLICY.md        OCC 동시성 계약
     skills/
         recreate/SKILL.md + reference/{gene-extraction, generation-paths,
                             rerun-avoidance, differentiation, design-seed}.md
         pg/SKILL.md  pgf/SKILL.md   (의존 스킬)
-    schemas/                   registry.empty.json · project-gene.schema.json ·
-                               design-seed.template.md · crossmodel-scores.template.json
-    scripts/aggregate_crossmodel.py   (결정론 cross-model 집계)
-    corpus/                    ← 사용자의 README 코퍼스 (corpus/example/ 3종 동봉)
+    schemas/                   registry.empty.json · registry.schema.json ·
+                               project-gene.schema.json · design-seed.template.md ·
+                               crossmodel-scores.template.json
+    scripts/                   fingerprint.py · validate_projectgenome.py ·
+                               aggregate_crossmodel.py   (결정론 도구, stdlib only)
+    tests/                     결정론 헬퍼 unittest (stdlib only)
+    .github/workflows/ci.yml   CI (py_compile + unittest + validate)
+    corpus/                    ← 사용자의 README 코퍼스 (README.md + corpus/example/ 3종 동봉)
     examples/CASE-STUDY.md     익명 실증
+    examples/example-run/      corpus/example로 돌린 축약 산출 (genes/inventory/candidates/DesignSeed)
     --- 런타임 실행 시 생성 (gitignored) ---
     .recreate/
         latest.json  registry.json   (schemas/registry.empty.json에서 시작)

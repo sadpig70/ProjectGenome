@@ -41,7 +41,7 @@ def _load_json(path, problems):
     try:
         with open(path, "r", encoding="utf-8") as h:
             return json.load(h)
-    except Exception as exc:  # noqa: BLE001
+    except (OSError, ValueError) as exc:
         problems.append("JSON parse failed: %s (%s)" % (path, exc))
         return None
 
@@ -93,8 +93,9 @@ def check_genes(path, problems, notes):
 
 def check_seed(path, problems, notes):
     try:
-        text = open(path, "r", encoding="utf-8").read()
-    except Exception as exc:  # noqa: BLE001
+        with open(path, "r", encoding="utf-8") as h:
+            text = h.read()
+    except OSError as exc:
         problems.append("DesignSeed read failed: %s (%s)" % (path, exc))
         return
     for sec in SEED_SECTIONS:

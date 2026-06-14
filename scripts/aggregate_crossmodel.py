@@ -34,7 +34,8 @@ def load(scores_dir):
     for path in sorted(glob.glob(os.path.join(scores_dir, "*.scores.json"))):
         if os.path.basename(path).startswith(("_TEMPLATE", "_")):
             continue
-        doc = json.load(open(path, "r", encoding="utf-8"))
+        with open(path, "r", encoding="utf-8") as h:
+            doc = json.load(h)
         data[doc["runtime"]] = doc
     return data
 
