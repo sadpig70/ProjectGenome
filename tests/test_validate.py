@@ -65,5 +65,53 @@ class TestValidateDetectsProblems(unittest.TestCase):
             self.assertEqual(self._run(d), 0)
 
 
+_GOOD_SEED = """# DESIGN-SEED-DwellGate
+## 한 질문
+> q?
+## 분류
+- archetype: Gate+Ledger
+- layers_used: Control, Evidence
+## 재사용 계획 (reuse_plan)
+| 부품 | source project | kind | reuse_cost |
+|---|---|---|---|
+| rules | A | engine | copy |
+| ledger | B | ledger | copy |
+## 판정 (verdict_scheme)
+allow / block
+## 경계 (boundary)
+> 이것은 결제 처리기가 아니다.
+"""
+
+
+class TestCheckSeedStructure(unittest.TestCase):
+    def _seed_run(self, text):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, "DESIGN-SEED-X.md"), "w", encoding="utf-8") as h:
+                h.write(text)
+            argv = sys.argv
+            try:
+                sys.argv = ["validate", d]
+                return V.main()
+            finally:
+                sys.argv = argv
+
+    def test_good_seed_passes(self):
+        self.assertEqual(self._seed_run(_GOOD_SEED), 0)
+
+    def test_invalid_archetype_fails(self):
+        self.assertEqual(self._seed_run(_GOOD_SEED.replace("Gate+Ledger", "Banana")), 1)
+
+    def test_invalid_layer_fails(self):
+        self.assertEqual(self._seed_run(_GOOD_SEED.replace("Control, Evidence", "Control, Bogus")), 1)
+
+    def test_single_reuse_row_fails(self):
+        one = _GOOD_SEED.replace("| ledger | B | ledger | copy |\n", "")
+        self.assertEqual(self._seed_run(one), 1)
+
+    def test_boundary_without_negation_fails(self):
+        weak = _GOOD_SEED.replace("> 이것은 결제 처리기가 아니다.", "> 이것은 결제 처리기다.")
+        self.assertEqual(self._seed_run(weak), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

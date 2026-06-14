@@ -25,7 +25,7 @@ def differentiate(c, genes, vocab_registry) -> Verdict:
     overlap  = AI_assess_overlap(c, siblings)               # 0~1 (A)
     tag_clash = AI_tag_overlap(c, siblings)                 # 공유 태그 수 (B)
     vocab_clash = any(t in vocab_registry
-                      for t in AI_tokenize_naming(c["name"]))  # 결정론
+                      for t in tokenize_name(c["name"]))  # 결정론 (fingerprint.py)
     if overlap >= 0.7 or tag_clash >= 3:
         v, hint = "duplicate", AI_suggest_pivot(c, siblings)
     elif overlap >= 0.4 or tag_clash >= 2 or vocab_clash:

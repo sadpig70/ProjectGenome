@@ -83,6 +83,9 @@ def main():
             vals = [data[rt]["scores"][c][a] for rt in data]
             median[c][a] = statistics.median(vals)
         consensus[c] = round(sum(median[c].values()), 4)
+        # pstdev (population): the scored runtimes ARE the full set being measured,
+        # not a sample — disagreement describes their actual spread. Also avoids the
+        # StatisticsError that stdev() raises when only one runtime is present.
         disagree[c] = round(sum(statistics.pstdev([data[rt]["scores"][c][a]
                             for rt in data]) for a in AXES), 4)
 

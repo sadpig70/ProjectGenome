@@ -170,7 +170,12 @@ def source_fingerprint(parts: list[str]) -> str:
 
 def normalize_name(name: str) -> str:
     return re.sub(r"[^a-z0-9]", "", name.lower())
+
+def tokenize_name(name: str) -> list[str]:    # CamelCase → word tokens (vocab_clash)
+    return [t for t in re.split(r"[^a-z0-9]+",
+            re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", name).lower()) if t]
 ```
+> 위 3개는 `scripts/fingerprint.py`의 정본 구현(`source_fingerprint`/`normalize_name`/`tokenize_name`)과 동일하다. 결정론 영역이므로 AI_ 함수가 아닌 코드로 호출한다.
 
 ### 6.2 Hard Reject (결정론 — 감사 명확, M1)
 ```python

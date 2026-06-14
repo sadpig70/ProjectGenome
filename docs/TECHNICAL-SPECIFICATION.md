@@ -578,7 +578,7 @@ ProjectGenome/
                                project-gene.schema.json · design-seed.template.md ·
                                crossmodel-scores.template.json
     scripts/                   fingerprint.py · validate_projectgenome.py ·
-                               aggregate_crossmodel.py   (결정론 도구, stdlib only)
+                               aggregate_crossmodel.py · concurrency.py   (결정론 도구, stdlib only)
     tests/                     결정론 헬퍼 unittest (stdlib only)
     .github/workflows/ci.yml   CI (py_compile + unittest + validate)
     corpus/                    ← 사용자의 README 코퍼스 (README.md + corpus/example/ 3종 동봉)

@@ -91,7 +91,7 @@ docs/TECHNICAL-SPECIFICATION.md    전체 기술서 (처음 보는 사람용 정
 skills/recreate/                   실행 스킬 (SKILL.md + reference/ 5종)
 skills/pg/  skills/pgf/            AI-native 표기 + full-cycle 의존 스킬
 schemas/                           빈 데이터 계약 템플릿 (registry/gene/seed/scores)
-scripts/                           결정론 도구 (fingerprint · validate_projectgenome · aggregate_crossmodel)
+scripts/                           결정론 도구 (fingerprint · validate_projectgenome · aggregate_crossmodel · concurrency)
 tests/                             결정론 헬퍼 unittest (stdlib only)
 corpus/                            ← 당신의 README 코퍼스를 여기에 (+ corpus/example/)
 examples/CASE-STUDY.md             익명 실증

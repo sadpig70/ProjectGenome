@@ -91,6 +91,16 @@ def check_genes(path, problems, notes):
     notes.append("genes checked: %d entries in %s" % (len(genes), path))
 
 
+def _section(text, heading):
+    """Body of a '## {heading}...' section up to the next '## ' (or EOF)."""
+    m = re.search(r"^##\s+%s.*$" % re.escape(heading), text, re.MULTILINE)
+    if not m:
+        return None
+    rest = text[m.end():]
+    nxt = re.search(r"^##\s+", rest, re.MULTILINE)
+    return rest[:nxt.start()] if nxt else rest
+
+
 def check_seed(path, problems, notes):
     try:
         with open(path, "r", encoding="utf-8") as h:
@@ -98,10 +108,36 @@ def check_seed(path, problems, notes):
     except OSError as exc:
         problems.append("DesignSeed read failed: %s (%s)" % (path, exc))
         return
+    name = os.path.basename(path)
     for sec in SEED_SECTIONS:
         if sec not in text:
-            problems.append("%s: missing required section containing %r" % (os.path.basename(path), sec))
-    notes.append("DesignSeed checked: %s" % os.path.basename(path))
+            problems.append("%s: missing required section containing %r" % (name, sec))
+
+    # Structural checks (beyond keyword presence) — only when the field is present.
+    m = re.search(r"archetype:\s*([A-Za-z][A-Za-z+]*)", text)
+    if m and not is_valid_archetype(m.group(1)):
+        problems.append("%s: invalid archetype %r (expected 1-2 of the 7)" % (name, m.group(1)))
+    m = re.search(r"layers_used:\s*([A-Za-z][A-Za-z,/ ]*)", text)
+    if m:
+        for tok in re.split(r"[,/]", m.group(1)):
+            tok = tok.strip()
+            if tok and tok not in LAYERS:
+                problems.append("%s: invalid layer %r in layers_used" % (name, tok))
+
+    reuse = _section(text, "재사용 계획")
+    if reuse is not None:
+        rows = [ln for ln in reuse.splitlines()
+                if ln.lstrip().startswith("|") and "---" not in ln]
+        data_rows = max(0, len(rows) - 1)  # drop the header row
+        if data_rows < 2:
+            problems.append("%s: reuse_plan needs >=2 parts (corpus-basedness), got %d"
+                            % (name, data_rows))
+
+    boundary = _section(text, "경계")
+    if boundary is not None and not re.search(r"아니다|not\b|NOT\b", boundary):
+        problems.append("%s: boundary must declare what this is NOT ('~가 아니다')" % name)
+
+    notes.append("DesignSeed checked: %s" % name)
 
 
 def check_scores(path, problems, notes):

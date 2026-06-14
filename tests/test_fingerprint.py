@@ -5,8 +5,8 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts"))
 from fingerprint import (  # noqa: E402
-    normalize_name, source_fingerprint, generated_fingerprint, is_valid_archetype,
-    ARCHETYPES, LAYERS,
+    normalize_name, tokenize_name, source_fingerprint, generated_fingerprint,
+    is_valid_archetype, ARCHETYPES, LAYERS,
 )
 
 
@@ -57,6 +57,24 @@ class TestIsValidArchetype(unittest.TestCase):
 
     def test_reject_empty(self):
         self.assertFalse(is_valid_archetype(""))
+
+
+class TestTokenizeName(unittest.TestCase):
+    def test_camelcase_split(self):
+        self.assertEqual(tokenize_name("DwellProvenanceGate"),
+                         ["dwell", "provenance", "gate"])
+
+    def test_delimiters_and_digits(self):
+        self.assertEqual(tokenize_name("Gate2_Ledger-Mesh"),
+                         ["gate2", "ledger", "mesh"])
+
+    def test_empty(self):
+        self.assertEqual(tokenize_name(""), [])
+
+    def test_vocab_clash_use(self):
+        registry = {"mesh", "clearing"}
+        self.assertTrue(any(t in registry for t in tokenize_name("PowerMesh")))
+        self.assertFalse(any(t in registry for t in tokenize_name("DwellGate")))
 
 
 class TestLayers(unittest.TestCase):

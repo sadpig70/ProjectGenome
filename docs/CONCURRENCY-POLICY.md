@@ -5,6 +5,11 @@
 > policy this corrupts the registry or loses updates. This document is the canonical design for that
 > case. The sequential case (one run finishes before the next reads the registry) needs none of this.
 > Normative summary lives in `skills/recreate/reference/rerun-avoidance.md §10`.
+>
+> **Implementation.** The deterministic mechanics in §4–§5 (registry lock, claim, commit
+> version-CAS, atomic write, hard-collision check) are implemented in `scripts/concurrency.py`
+> (`claim_run` / `commit_run` / `registry_lock`, stdlib only). The soft avoidance / pivot
+> strategy stays AI-side: `commit_run` returns `"collision"` for the runtime to pivot or discard.
 
 ---
 

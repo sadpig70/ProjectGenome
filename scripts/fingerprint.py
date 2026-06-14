@@ -24,6 +24,16 @@ def normalize_name(name: str) -> str:
     return re.sub(r"[^a-z0-9]", "", (name or "").lower())
 
 
+def tokenize_name(name: str) -> list:
+    """Split a CamelCase / delimited project name into lowercase word tokens.
+
+    Deterministic basis for vocab_clash (see differentiation.md): no AI needed —
+    e.g. 'DwellProvenanceGate' -> ['dwell', 'provenance', 'gate'].
+    """
+    spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", (name or ""))
+    return [t for t in re.split(r"[^A-Za-z0-9]+", spaced.lower()) if t]
+
+
 def source_fingerprint(parts) -> str:
     """Canonical key for a set of corpus source projects (order-independent, dedup)."""
     return "+".join(sorted(set(p for p in parts if p)))
