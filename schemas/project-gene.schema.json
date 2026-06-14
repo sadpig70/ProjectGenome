@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProjectGene",
+  "description": "One corpus project reduced to a 3-axis reusable part (form / property / function). See skills/recreate/reference/gene-extraction.md.",
+  "type": "object",
+  "required": ["project", "repo", "domain", "archetype", "mechanism", "layer", "verdict_scheme", "vocab"],
+  "properties": {
+    "project": {"type": "string", "description": "display name"},
+    "repo": {"type": "string", "description": "folder / repo name"},
+    "domain": {"type": "string"},
+    "archetype": {"type": "string", "enum": ["Gate", "Mesh", "Clearing", "Index", "Ledger", "Stage", "Appraisal"], "description": "axis 1 (form) — which engine skeleton to reuse; secondary allowed e.g. 'Gate+Ledger'"},
+    "mechanism": {"type": "string", "description": "axis 2 (property) — abstract operating principle with domain nouns stripped (TRANSPLANT reuses this)"},
+    "evidence_model": {"type": "string"},
+    "control_primitive": {"type": "string"},
+    "artifact_type": {"type": "string"},
+    "grammar": {"type": "string"},
+    "layer": {"type": "string", "enum": ["Sensing", "Evidence", "Control", "Allocation", "Release"], "description": "axis 3 (function) — orthogonal to archetype"},
+    "lens_stack": {"type": "array", "items": {"type": "string"}, "description": "L1..L25, reverse-extracted from provenance; mark inferred as 'L6_Gap(inferred)'"},
+    "verdict_scheme": {"type": "array", "items": {"type": "string"}, "description": "k-way verdict tokens, e.g. ['cleared','thin','blocked']"},
+    "adapter_contract": {"type": ["string", "null"]},
+    "has_ledger": {"type": "boolean"},
+    "boundary": {"type": "string", "description": "'this is NOT ...' clause"},
+    "vocab": {"type": "array", "items": {"type": "string"}, "description": "deterministic lowercase name tokens for clash avoidance"},
+    "derivative_risk_tags": {"type": "array", "items": {"type": "string"}}
+  }
+}

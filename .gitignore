@@ -1,0 +1,19 @@
+# Runtime outputs of the recreate skill (per-run artifacts + registry instance)
+.recreate/runs/
+.recreate/crossmodel/scores/*.scores.json
+.recreate/crossmodel/round2/scores/*.scores.json
+.recreate/registry.json
+.recreate/latest.json
+
+# pgf execution artifacts
+.pgf/
+
+# Generated project folders (each becomes its own repo)
+# (uncomment / adjust per your naming)
+# /Generated*/
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store

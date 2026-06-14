@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.1",
+  "version": 0,
+  "active_runs": [],
+  "_concurrency_note": "Concurrency contract: skills/recreate/reference/rerun-avoidance.md §10. Runs claim (Phase 0) and commit (Phase 7 OCC) here, bumping version. latest.json points to the max-version commit.",
+  "corpus_baseline": {
+    "project_count": 0,
+    "source": "corpus/ (put your README corpus here; see corpus/README.md)"
+  },
+  "source_projects": {},
+  "generated_projects": {},
+  "blocked_names": [],
+  "source_fingerprints": {},
+  "generated_fingerprints": {}
+}

@@ -1,0 +1,28 @@
+{
+  "task_id": "crossmodel-scoring",
+  "runtime": "<your-runtime-id>",
+  "scored_at": "<session date — do NOT call system clock; inject>",
+  "rubric_version": "differentiation.md §3.3 6-axis anchors",
+  "independence_attestation": "I did not read any other runtime's *.scores.json before scoring.",
+  "scores": {
+    "<CandidateName>": {
+      "reuse_leverage": 0.0,
+      "novelty": 0.0,
+      "domain_demand": 0.0,
+      "buildability": 0.0,
+      "boundary_clarity": 0.0,
+      "system_potential": 0.0,
+      "aggregate": 0.0,
+      "self_authored": false,
+      "rationale": "<1-2 lines>"
+    }
+  },
+  "integrate_gate_local": {
+    "candidate": "<integrated candidate name, if scoring an integration>",
+    "candidate_aggregate": 0.0,
+    "best_parent": "<parent name>",
+    "best_parent_aggregate": 0.0,
+    "candidate_exceeds_best_parent": false,
+    "note": "<does this runtime's scoring uphold or overturn the integrate adoption?>"
+  }
+}
