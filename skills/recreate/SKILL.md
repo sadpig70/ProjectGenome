@@ -84,7 +84,7 @@ single_question        # "이 X에 대해 Y인가?" — 한 줄 질문
 ### 코퍼스 재료의 2계층
 
 - **1차 재료**: 코퍼스 루트 각 폴더의 `README.md` (코드 없음, README only) + `corpus/`.
-- **2차 정밀 재료**: 각 프로젝트 전체 소스는 `github.com/sadpig70/<repo>` 에 공개. `{repo}`=폴더명
+- **2차 정밀 재료**: 각 프로젝트 전체 소스는 `<your-git-host>/<your-org>/<repo>` 에 공개. `{repo}`=폴더명
   (대소문자 혼재: `ADPR`, `afferentcore`, `MCO`, `pact`, `RRE` …). README만으로 엔진 로직·
   `verdict_scheme`·`adapter_contract` 분해가 모호하면 해당 repo의 코드/`.pgf/DESIGN-*.md`를 fetch해 보강.
 
@@ -102,7 +102,7 @@ single_question        # "이 X에 대해 Y인가?" — 한 줄 질문
 | `/recreate seed [candidate]` | "recreate seed 수행, 후보 {이름}을 DesignSeed로" | Phase 6: DesignSeed + pgf 핸드오프 안내 |
 | `/recreate status` | "recreate 진행 상태 보고" | 현재 진행 상태 |
 
-- `corpus-dir`/대상 생략 시 현재 작업 디렉토리를 코퍼스 루트로 본다 (`project_list.md` + 각 폴더 `README.md`).
+- `corpus-dir`/대상 생략 시 `corpus/`를 코퍼스 루트로 본다 (각 프로젝트 폴더의 `README.md`).
 - 모드 없이 호출하면 `run`으로 간주.
 
 ### 산출물 레이아웃
@@ -137,7 +137,7 @@ RecreateMethod // 코퍼스 → 새 프로젝트 DesignSeed (in-progress) @v:2.1
         LoadRegistry // .recreate/registry.json 로드 (없으면 빈 registry)
         CreateRunScope // .recreate/runs/{NNN}-pending/ 생성
         BuildInputManifest // 코퍼스 included / 생성 프로젝트 excluded 고정
-        LoadList // project_list.md 로드
+        LoadList // corpus/ 프로젝트 폴더 목록 로드
         ReadReadmes // 각 README 읽기 (생성 프로젝트 제외)
         BuildGenes // 3축 ProjectGene 추출
     Phase1_Inventory // 3축 인벤토리 + 어휘 레지스트리 (designing) @dep:Phase0_Corpus

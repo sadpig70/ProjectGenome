@@ -247,7 +247,7 @@ def update_registry(registry, run, winner):
 
 ---
 
-## 9. 통합 예외 — cross-model integration (FLEET-SYNTHESIS §6.1 보강)
+## 9. 통합 예외 — cross-model integration
 
 > **왜 필요한가.** §6의 회피는 후보를 신선한 코퍼스 source로 밀어내 다양성을 키운다. 그러나 그
 > 압력은 fleet winner들을 **disjoint source**로 갈라놓아, Phase 4의 cross-model integrate("같은
@@ -314,11 +314,11 @@ def generated_fingerprint(parents: list[str]) -> str:
 
 ---
 
-## 10. 동시 실행 계약 — concurrent multi-runtime (FLEET-SYNTHESIS §6.2 보강)
+## 10. 동시 실행 계약 — concurrent multi-runtime (상세 → `docs/CONCURRENCY-POLICY.md`)
 
 > §2~9는 **순차** 실행을 전제한다(한 run이 registry를 갱신해야 다음 run이 baseline을 읽음).
 > 진짜 **동시** 실행에서는 둘이 같은 baseline을 읽고 같은 fingerprint/이름을 만들 수 있어, 락/버전/머지
-> 없이는 충돌하거나 lost update가 난다. 설계 근거·위험 7종(H1~H7)·알고리즘 상세 → `.recreate/FOLLOWUP-E-concurrency-policy.md`.
+> 없이는 충돌하거나 lost update가 난다. 설계 근거·위험 7종(H1~H7)·알고리즘 상세 → `docs/CONCURRENCY-POLICY.md`.
 > 지금까지 fleet은 순차였으므로 이 계약은 **첫 동시 실행 전 활성화**한다.
 
 ### 10.1 registry 스키마 확장 (forward-compatible)

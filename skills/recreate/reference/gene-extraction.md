@@ -4,7 +4,7 @@
 > 코퍼스의 각 프로젝트를 형태·속성·기능 3축으로 동시에 환원한다.
 >
 > **재료 출처**: 1차는 각 폴더 `README.md`(코드 없음). `mechanism`/`verdict_scheme`/`adapter_contract`가
-> README만으로 모호하면 2차로 `github.com/sadpig70/<repo>`(=폴더명)의 코드·`.pgf/DESIGN-*.md`를 fetch해
+> README만으로 모호하면 2차로 `<your-git-host>/<your-org>/<repo>`(=폴더명)의 코드·`.pgf/DESIGN-*.md`를 fetch해
 > 보강한다. 보강분은 gene에 출처를 표기한다.
 
 ---

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProjectGenome registry",
+  "description": "Durable cross-run memory. See skills/recreate/reference/rerun-avoidance.md §3.2 / §10. Validate with scripts/validate_projectgenome.py.",
+  "type": "object",
+  "required": ["schema_version", "version", "generated_projects", "blocked_names", "source_fingerprints"],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "updated_at": {"type": "string"},
+    "version": {"type": "integer", "minimum": 0, "description": "monotonic; claim/commit bump it (§10)"},
+    "active_runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim_seq", "run_id", "runtime", "status"],
+        "properties": {
+          "claim_seq": {"type": "integer"},
+          "run_id": {"type": "string"},
+          "runtime": {"type": "string"},
+          "baseline_version": {"type": "integer"},
+          "status": {"type": "string", "enum": ["active", "committed", "aborted"]}
+        }
+      }
+    },
+    "corpus_baseline": {
+      "type": "object",
+      "properties": {"project_count": {"type": "integer"}, "source": {"type": "string"}}
+    },
+    "source_projects": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "use_count": {"type": "integer"},
+          "used_by": {"type": "array", "items": {"type": "string"}},
+          "last_reuse_cost": {"type": "string", "enum": ["copy", "parametrize", "redesign"]}
+        }
+      }
+    },
+    "generated_projects": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["created_by_run", "status", "consumed_sources", "source_fingerprint", "verdict_scheme"],
+        "properties": {
+          "created_by_run": {"type": "string"},
+          "status": {"type": "string", "enum": ["seeded", "implemented"]},
+          "consumed_sources": {"type": "array", "items": {"type": "string"}},
+          "source_fingerprint": {"type": "string"},
+          "verdict_scheme": {"type": "array", "items": {"type": "string"}},
+          "gen_path": {"type": "string"},
+          "integrated_from": {"type": "array", "items": {"type": "string"}},
+          "generated_fingerprint": {"type": "string"}
+        }
+      }
+    },
+    "blocked_names": {"type": "array", "items": {"type": "string"}},
+    "source_fingerprints": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["project", "run_id"],
+        "properties": {"project": {"type": "string"}, "run_id": {"type": "string"}}
+      }
+    },
+    "generated_fingerprints": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["project", "run_id"],
+        "properties": {"project": {"type": "string"}, "run_id": {"type": "string"}}
+      }
+    }
+  }
+}

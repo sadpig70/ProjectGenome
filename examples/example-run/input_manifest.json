@@ -1,0 +1,20 @@
+{
+  "run_id": "001-pending",
+  "runtime": "example",
+  "corpus_root": "corpus/example",
+  "included_source_count": 3,
+  "included_sources": ["ParkingDwellGate", "HarvestLedger", "GridCurtailIndex"],
+  "excluded_generated_projects": [],
+  "registry_snapshot": {
+    "version": 0,
+    "generated_project_count": 0,
+    "consumed_source_count": 0
+  },
+  "avoidance_policy": {
+    "block_generated_names": true,
+    "reject_exact_source_fingerprint": true,
+    "reject_corpus_name_collision": true,
+    "penalize_consumed_sources": true
+  },
+  "note": "First run on a fresh registry over the 3 bundled example projects — no generated projects to exclude or avoid yet."
+}
