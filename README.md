@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/projectgenome-hero.png" alt="ProjectGenome corpus-to-design-seed pipeline" width="100%">
+</p>
+
 <h1 align="center">ProjectGenome</h1>
 
 <p align="center">
