@@ -70,6 +70,21 @@
         "required": ["project", "run_id"],
         "properties": {"project": {"type": "string"}, "run_id": {"type": "string"}}
       }
+    },
+    "idea_kernels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "problem_frame": {"type": "string"},
+          "method_archetype": {"type": "array", "items": {"type": "string"}},
+          "winner": {"type": "string"},
+          "kernel_gap": {"type": "object"},
+          "next_run_emphasis": {"type": "array", "items": {"type": "string"}},
+          "strength_label": {"type": "string"},
+          "outcome": {"type": "string"}
+        }
+      }
     }
   }
 }

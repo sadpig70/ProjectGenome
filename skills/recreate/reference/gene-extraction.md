@@ -174,3 +174,29 @@ def build_inventory(genes: list[ProjectGene]) -> dict:
 ```
 
 산출: `.recreate/genes.json` + `.recreate/inventory.md`.
+
+---
+
+## 7. Gene Graph — ABCLink 기질 (idea-layer P6)
+
+`genes`를 경량 지식그래프(KG)로 올리면 RECOMBINE의 `ABCLink`(Swanson A-B-C)가 *직접 엣지 없는* 두
+gene 사이의 중간항을 연산으로 찾는다 — 기존 `DistantHybridization`("먼 domain + 중간 evidence 유사도")의
+**구조화**다. 메타 파이프라인층이므로 `AI_` 허용(생성물 verdict 경로 아님).
+
+```python
+def build_gene_graph(genes: list[ProjectGene]) -> GeneGraph:
+    """SciAgents식 경량 온톨로지. 노드=gene, 엣지=공유 (mechanism/control_primitive/vocab/lens)."""
+    g = GeneGraph()
+    for gene in genes:
+        g.add_node(gene["project"], axes=(gene["archetype"], gene["layer"]))
+    for a, b in all_pairs(genes):
+        shared = AI_shared_primitives(a, b)        # 공유 mechanism/control/vocab/lens
+        if shared:
+            g.add_edge(a["project"], b["project"], via=shared)
+    return g
+    # acceptance_criteria:
+    #   - 엣지는 공유 근거(via)를 보유 (감사 가능)
+    #   - 직접 엣지 없는 쌍 = ABCLink 후보 (generation-paths.md §1.1 abc_link 입력)
+```
+
+산출: `.recreate/inventory.md`에 gene_graph 요약(노드/엣지 수 + distant_pairs 후보). 정본 → `idea-layer.md §5.6`.

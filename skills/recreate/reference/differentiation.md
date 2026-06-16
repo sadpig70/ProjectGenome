@@ -47,6 +47,21 @@ def differentiate(c, genes, vocab_registry) -> Verdict:
 
 > **vocab_clash면 distinct여도 재명명 강제** (ContextCreep 교훈: 포화 어휘 회피).
 
+### 1.1 동질화 연속신호 (idea-layer P1 보조)
+
+`overlap`/`tag_clash`는 **후보↔코퍼스**의 이산 임계다. 여기에 **후보풀 내부**의 의미 동질화를 연속신호로
+덧댄다 — 생성 규모를 키워도 고유 아이디어가 붕괴하는 현상(Si et al.)을 잡기 위함. 메타층이므로 `AI_` 임베딩 허용.
+
+```python
+# differentiate()의 verdict에 보조 필드로 병합 (이산 게이트는 불변)
+unique_ratio = measure_homogenization(pool, genes).unique_ratio   # idea-layer §5.1
+# unique_ratio < 0.5 (풀 절반 이상 의미중복) → K 늘리지 말고 enforce_diversity로 island 재발산
+```
+
+- 이산 verdict(distinct/needs_pivot/duplicate)는 그대로. `unique_ratio`는 **풀 수준** 보조신호로
+  `avoidance_report.md`에 로깅된다(Phase2b DiversityGuard와 같은 측정, 다른 비교대상).
+- 임계 0.8/0.5는 코퍼스 초기값(차용) — overlap 0.4/0.7과 **별개 축**, 성장 시 재보정. 정본 → `idea-layer.md §5.1`.
+
 ---
 
 ## 2. Vocab Registry (과밀 어휘 동적 충돌검사)
@@ -217,6 +232,31 @@ def select_or_integrate(cands, genes, vocab, k=5) -> list[Candidate]:
 단, 생성은 여러 모델이라도 `AI_score_candidate`·`integrate`를 한 모델이 단독 수행하면 그 평가자 편향이
 다양성을 좁힌다 → 가능하면 점수·통합도 cross-model 합의로 굴린다.
 
+### 3.4 토너먼트 교차검증 + idea_fit (idea-layer P2 보조)
+
+6축 절대점수(argmax)는 캘리브레이션이 약하다. **pairwise Elo 토너먼트를 병행**해 절대점수 top과
+토너먼트 top의 **불일치**를 드러내고, 갈리면 cross-model 합의(`§3.2a`/idea-layer P5)로 판정한다.
+kernel이 있으면 `idea_fit` 보조점수(problem_fit·determinism·proofability 등)를 6축에 더한다.
+
+```python
+def select_with_tournament(pool, scores, kernel=None, k=5) -> list[Candidate]:
+    abs_top = AI_top_k([(scores[c["name"]], c) for c in pool], k)   # 현행 6축 절대점수
+    elo_top = tournament_select(pool, k_top=k)                      # idea-layer §5.2 pairwise Elo
+    if set(map(name, abs_top)) != set(map(name, elo_top)):         # 불일치 → 단독 확정 금지
+        return cross_model_resolve(abs_top, elo_top, pool)         # cross-model 합의로 판정
+    final = abs_top
+    if kernel:                                                     # idea_fit 보조점수 (대체 아님)
+        final = AI_rerank_by_idea_fit(final, kernel)               # determinism·proofability·nonoverlap 가중
+    return final
+    # acceptance_criteria:
+    #   - 절대점수 top과 토너먼트 top의 불일치를 candidates.md에 보고
+    #   - margin < 0.10 → needs_cross_review (단일 평가자 확정 금지)
+    #   - idea_fit은 6축을 대체하지 않고 보조 (determinism 가중 최상)
+```
+
+- 토너먼트는 **현행 6축 선정을 대체하지 않는다** — 병행해 불일치를 신호로 쓴다(둘 다 동의하면 그대로).
+- kernel 없으면 기존 `select_or_integrate` 그대로(동작 불변). 정본 → `idea-layer.md §5.2`.
+
 ---
 
 ## 4. 실증 (Phase 5) — 필수 자기검증
@@ -233,13 +273,18 @@ def prove(top: list[Candidate]) -> list[Candidate]:
             "no overused vocab in name/mechanism",
             "has explicit differentiation vs nearest siblings",
             "fits cli_triplet + stdlib-only skeleton",
-            "single_question is answerable by a deterministic engine",
+            "single_question is answerable by a deterministic engine",   # ↓ EvaluatorGate로 승격
         ])
-        if ok:
+        if ok and evaluator_gate(c).ok:        # idea-layer P4: 결정론 답변가능을 게이트로 명문화
             proven.append({**c, "brief": brief})
     assert len(proven) >= 1, "RECREATE FAILED: zero proven candidates"
     return proven
 ```
+
+> **EvaluatorGate (idea-layer P4)**: 5-check의 마지막 "결정론 엔진 답변가능"을 명시 게이트로 승격한다.
+> `evaluator_gate`는 `engine_decidable ∧ verdict_machine_checkable ∧ evaluate_definable`을 검사 —
+> FunSearch/AlphaEvolve의 "machine-verifiable evaluator가 있을 때만 자율생성 유효" 교훈을 recreate의
+> 결정론 verdict engine에 부여한다. REJECT 시 Phase2 롤백(비싼 구현 전 차단). 정본 → `idea-layer.md §5.4`.
 
 brief 형식 (각 후보):
 

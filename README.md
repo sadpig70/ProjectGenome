@@ -88,7 +88,7 @@ cp schemas/registry.empty.json .recreate/registry.json
 ```
 README.md                          이 문서
 docs/TECHNICAL-SPECIFICATION.md    전체 기술서 (처음 보는 사람용 정본)
-skills/recreate/                   실행 스킬 (SKILL.md + reference/ 5종)
+skills/recreate/                   실행 스킬 (SKILL.md + reference/ 6종)
 skills/pg/  skills/pgf/            AI-native 표기 + full-cycle 의존 스킬
 schemas/                           빈 데이터 계약 템플릿 (registry/gene/seed/scores)
 scripts/                           결정론 도구 (fingerprint · validate_projectgenome · aggregate_crossmodel · concurrency)
@@ -106,7 +106,7 @@ RUNBOOK.md                         단계별 따라하기
 |---|---|
 | [`docs/TECHNICAL-SPECIFICATION.md`](docs/TECHNICAL-SPECIFICATION.md) | **전체 정본** — 방법론·파이프라인·데이터 계약·구현 패턴·실증·용어집 |
 | [`skills/recreate/SKILL.md`](skills/recreate/SKILL.md) | 스킬 진입점 (모드·파이프라인 Gantree) |
-| `skills/recreate/reference/*` | gene-extraction · generation-paths · rerun-avoidance · differentiation · design-seed |
+| `skills/recreate/reference/*` | gene-extraction · generation-paths · rerun-avoidance · differentiation · design-seed · idea-layer |
 | [`RUNBOOK.md`](RUNBOOK.md) | 단계별 따라하기 (Setup→map→generate→seed→pgf) |
 | [`docs/CONCURRENCY-POLICY.md`](docs/CONCURRENCY-POLICY.md) | 동시 multi-runtime 실행 정책(OCC) |
 | [`examples/CASE-STUDY.md`](examples/CASE-STUDY.md) · [`examples/example-run/`](examples/example-run/) | 익명 실증 · 예시 run 산출 |

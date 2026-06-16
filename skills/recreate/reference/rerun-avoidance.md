@@ -80,6 +80,13 @@
   "source_fingerprints": {
     "ADPR+ForgeQuarantine+PnR+ReleaseMesh": { "project": "ExampleProject",
                                               "run_id": "001-example-project" }
+  },
+  "idea_kernels": {
+    "IK-001": {
+      "problem_frame": "...", "method_archetype": ["source_grounded_linking"],
+      "winner": "ExampleProject", "kernel_gap": { "diversity": 0.05, "determinism": 1.0 },
+      "next_run_emphasis": ["diversity", "surrogate"], "strength_label": "claimed", "outcome": "seeded"
+    }
   }
 }
 ```
@@ -87,6 +94,8 @@
 - `generated_projects`에는 **실제 구현된 것만** 기록 (미선정 top-K는 run dir candidates.md에 보존).
 - `updated_at`은 선택 필드 — 세션 날짜 주입 또는 생략 (M3).
 - `source_projects`는 코퍼스 원본 단위 사용 이력; `source_fingerprints`는 조합 중복 검사 정규화 키.
+- `idea_kernels`(idea-layer): run별 상류 의도 + `kernel_gap`(의도 대비 달성) + `next_run_emphasis`
+  (다음 run 조향 신호). **환류 없이 run 종료 금지(NoOpenLoop)**. 정본 → `idea-layer.md §7`.
 
 ### 3.3 `input_manifest.json`
 ```json
@@ -102,9 +111,22 @@
     "reject_corpus_name_collision": true,
     "penalize_consumed_sources": true,
     "penalize_generated_overlap": true
+  },
+  "idea_kernel": {
+    "kernel_id": "IK-002",
+    "problem_frame": "...",
+    "method_archetype": ["source_grounded_linking", "program_search"],
+    "target_nonoverlap": ["...", "...", "..."],
+    "target_nonoverlap_score": 0.6,
+    "source_search_queries": ["...", "...", "...", "...", "..."],
+    "deterministic_engine_hint": "...",
+    "kill_conditions": ["...", "...", "..."]
   }
 }
 ```
+
+> `idea_kernel`은 idea-layer의 상류 의도(Phase1.5). run의 6 primitive 목표를 선언하며, Phase7
+> `kernel_gap`이 이를 *측정한 달성*과 대조해 다음 run을 조향한다(폐루프). 정본 → `idea-layer.md §4`.
 
 ### 3.4 `avoidance_report.md` — 모든 판단을 근거+점수로 로깅 (M1 핵심)
 ```markdown
@@ -112,12 +134,15 @@
 ## Registry Snapshot
 - generated_projects: 1 | consumed_sources: PnR, ReleaseMesh, ForgeQuarantine, ADPR
 ## Candidate Decisions
-| candidate | decision | reason | score |
-|---|---|---|---:|
-| ExampleProjectV2 | reject | name collision (hard) | — |
-| ExampleCandidate | needs_pivot | source overlap 3/4 + release-witness grammar | 0.38 |
-| OtherCandidate | allow | no collision, low overlap | 0.10 |
+| candidate | decision | reason | score | unique_ratio | idea_kernel_collision |
+|---|---|---|---:|---:|---|
+| ExampleProjectV2 | reject | name collision (hard) | — | — | — |
+| ExampleCandidate | needs_pivot | source overlap 3/4 + release-witness grammar | 0.38 | 0.42 | anti_example |
+| OtherCandidate | allow | no collision, low overlap | 0.10 | 0.71 | none |
 ```
+
+> `unique_ratio`(풀 동질화)·`idea_kernel_collision`(anti_examples/kill_conditions 저촉)은 idea-layer
+> DiversityGuard 보조신호. 이산 hard-reject는 불변, 이 점수들은 soft 계층에 병합·로깅된다(감사).
 
 ### 3.5 run `status.json` 추가 필드
 `run_id`, `run_path`, `registry_path`, `input_manifest`, `avoidance_report`,
@@ -133,19 +158,22 @@ Phase0_Corpus
     CreateRunScope        # .recreate/runs/{NNN}-pending/
     BuildInputManifest    # included_sources(코퍼스) / excluded(생성 프로젝트) 고정
     BuildGenes            # 생성 프로젝트 제외한 코퍼스만 3축 환원
-Phase1_Inventory
-Phase2_Generate
+Phase1_Inventory          # + GeneGraph (idea-layer: ABCLink 기질)
+Phase1_5_IdeaKernel       # ★ idea-layer — 상류 의도(input_manifest.idea_kernel) (NoNameFirst)
+Phase2_Generate           # + kernel bias + GenerateDebateEvolve (idea-layer)
 Phase2b_Avoidance         # ★ 신규 — 과거 run/생성물/소비 source 기반 회피
     RejectGeneratedNameCollision
     RejectSourceFingerprintCollision
     RejectCorpusNameCollision
     AssessConsumedSourcePenalty
+    DiversityGuard          # idea-layer P1 — 동질화 연속신호 soft 병치 (이산 게이트 불변)
     EmitAvoidanceReport
-Phase3_Differentiate      # 코퍼스 대비 의미 차별화 (역할 분리 — §5)
-Phase4_SelectOrIntegrate
-Phase5_Prove
-Phase6_SeedDesign         # seed 산출 후 run rename: {NNN}-pending → {NNN}-{winner-slug}
+Phase3_Differentiate      # 코퍼스 대비 의미 차별화 (역할 분리 — §5) + unique_ratio 보조
+Phase4_SelectOrIntegrate  # + TournamentSelect/idea_fit (idea-layer P2)
+Phase5_Prove              # + EvaluatorGate (idea-layer P4)
+Phase6_SeedDesign         # seed 산출 후 run rename: {NNN}-pending → {NNN}-{winner-slug}; + idea_trace/CrossModelVerify
 Phase7_UpdateRegistry     # ★ 신규 — winner·consumed_sources 누적 + latest.json 갱신
+    MeasureKernelGap        # ★ idea-layer 폐루프 — 의도 대비 달성 gap → idea_kernels 누적 → 다음 kernel 조향
 ```
 
 ---
@@ -209,6 +237,25 @@ def avoidance_decision(cand, registry) -> dict:
   `redesign`은 약한 penalty (개념만 재사용).
 - **모든 판정(reject/needs_pivot/allow)은 점수·근거와 함께 `avoidance_report.md`에 기록** — 감사 가능성.
 
+### 6.4 DiversityGuard — 동질화 연속신호 (idea-layer P1, soft)
+
+`AssessConsumedSourcePenalty`와 **같은 AI-판정 계층**에 병치한다. §6.2 이산 hard-reject는 불변.
+
+```python
+def diversity_guard(pool, genes, kernel) -> dict:
+    """후보풀의 의미 동질화를 연속신호로 측정 (이산 충돌검사 보완). 메타층 AI_ 허용."""
+    report = measure_homogenization(pool, genes)              # idea-layer §5.1
+    collisions = {c.name: AI_check_kernel_collision(c, kernel) # anti_examples/kill_conditions 저촉
+                  for c in pool} if kernel else {}
+    if report.unique_ratio < 0.5:                            # K 늘리지 말고 island 재발산
+        pool = enforce_diversity(report, pool)
+    log_to_avoidance_report(pool, report.unique_ratio, collisions)  # soft 점수 병합
+    return {"pool": pool, "unique_ratio": report.unique_ratio, "collisions": collisions}
+```
+
+- 비교 대상이 다르다: Phase2b DiversityGuard = **후보풀 내부 + kernel 의도**, Phase3 unique_ratio =
+  **후보↔코퍼스**. 둘 다 이산 게이트를 흐리지 않고 점수로만 병합. 정본 → `idea-layer.md §5.1`.
+
 ---
 
 ## 7. Phase7 — 레지스트리 갱신
@@ -231,10 +278,19 @@ def update_registry(registry, run, winner):
         sp = registry.setdefault("source_projects", {}).setdefault(s, {"use_count": 0, "used_by": []})
         sp["use_count"] += 1; sp["used_by"].append(winner["name"])
         sp["last_used_run"] = run.id
+    if run.idea_kernel:                               # ★ idea-layer 폐루프 — 환류 없이 종료 금지(NoOpenLoop)
+        gap = AI_measure_kernel_gap(run.idea_kernel, run.diversity_report,
+                                    run.verify_report, winner)        # 의도 대비 달성
+        registry = update_registry_with_idea_outcome(registry, winner, run.idea_kernel, gap)  # idea-layer §7
     write_json(".recreate/registry.json", registry)
     write_json(".recreate/latest.json", {"latest_run_id": run.id, "latest_run_path": run.path,
                "winner": winner["name"], "seed_path": run.seed_path})
 ```
+
+> **폐루프 (idea-layer)**: `AI_measure_kernel_gap`은 kernel이 *선언한* 목표(target_nonoverlap_score 등)와
+> 게이트가 *측정한* 달성(unique_ratio·elo·evaluator_gate 등)을 primitive별로 대조해 gap을 내고,
+> `next_run_emphasis`(gap 큰 primitive)를 `idea_kernels`에 누적한다. 다음 run의 `AI_make_idea_kernel`이
+> 이 saturation을 입력받아 조향된다 — recreate가 자기 자신에 `closed_loop`를 적용. 정본 → `idea-layer.md §7`.
 
 ---
 

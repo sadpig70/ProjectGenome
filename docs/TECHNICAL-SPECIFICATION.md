@@ -305,6 +305,30 @@ DesignSeed 스키마(§7.5)는 `pgf full-cycle`의 DESIGN 입력 계약이다.
 
 ---
 
+## 5.10 Idea Layer — 메타 파이프라인 가산 레이어 (선택)
+
+정본: `skills/recreate/reference/idea-layer.md`.
+
+3개 AI 과학발견 방법론 보고서에서 도메인을 제거한 6개 메타 메커니즘을 Phase0~7에 **가산 앵커**한 레이어다.
+새 Phase를 만들지 않고 기존 노드를 강화한다. `IdeaKernel`(상류 의도)이 6 primitive의 목표를 *선언*하고,
+6 게이트가 달성을 *측정*하고, `kernel_gap`이 그 차이를 다음 run으로 *환류*하는 **폐쇄 제어 루프**다 —
+recreate가 자기 자신에 `closed_loop`를 적용해 동질화(반복 시 아이디어가 좁아지는 현상)를 다스린다.
+
+| primitive | 상류 kernel 필드 | 하류 게이트 | 앵커 |
+|---|---|---|---|
+| diversity_guard | target_nonoverlap | DiversityGuard (unique_ratio·island 재발산) | Phase2b/3 |
+| surrogate_before_selection | surrogate_score_hint | TournamentSelect (pairwise Elo) + idea_fit | Phase4 |
+| closed_loop | (kernel→registry 사이클) | GenerateDebateEvolve (생성-비판-진화) | Phase2 |
+| program_search | deterministic_engine_hint | EvaluatorGate (evaluate-함수 규율) | Phase5 |
+| evaluator_skepticism | kill_conditions | CrossModelVerify (합의·증거라벨) | Phase6/7 |
+| provenance_memory | kernel_id / idea_trace | ABCLink (Swanson A-B-C) + idea_outcome | Phase1/7 |
+
+**결정론 경계**: 이 레이어의 게이트는 메타 판단(`AI_` 비결정론)이다. 생성물 verdict 경로와 Phase2b
+이산 hard-reject는 **결정론 불변**. EvaluatorGate(P4)만 그 경계의 문지기 — 생성물 single_question이
+결정론 엔진으로 답 가능한지 *검사*한다. 도입은 가산이므로 kernel이 없으면 기존 Phase0~7 동작 그대로다.
+
+---
+
 ## 6. 재실행 안전 (Rerun Safety)
 
 정본: `skills/recreate/reference/rerun-avoidance.md`.
@@ -572,7 +596,7 @@ ProjectGenome/
         CONCURRENCY-POLICY.md        OCC 동시성 계약
     skills/
         recreate/SKILL.md + reference/{gene-extraction, generation-paths,
-                            rerun-avoidance, differentiation, design-seed}.md
+                            rerun-avoidance, differentiation, design-seed, idea-layer}.md
         pg/SKILL.md  pgf/SKILL.md   (의존 스킬)
     schemas/                   registry.empty.json · registry.schema.json ·
                                project-gene.schema.json · design-seed.template.md ·

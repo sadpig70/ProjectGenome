@@ -18,6 +18,7 @@ Candidate = dict = {
     "single_question": str,         # 새 프로젝트의 한 질문
     "novelty_claim": str,           # 왜 새로운가
     "layers": Optional[list[str]],  # LayerFusion일 때 계층 stack
+    "idea_trace": Optional[dict],   # idea-layer: {kernel_id, method_archetype, recombination_hypothesis}
 }
 ```
 
@@ -67,6 +68,23 @@ def AI_conflict_compile(primitive_shelf) -> list[Candidate]:
 ```
 - 정박: PowerRoam(compute가 전력 따라 이동) ⨉ SovMesh(sovereignty 고정) → "roaming이 sovereignty를 깨는 첫 지점 탐지".
 - 충돌쌍 예: BuyBloc⨉RefusalOption, GenCert⨉DriftDossier, SlotGate⨉LoopKit.
+
+### 1.4 ABCLink (idea-layer P6)
+Swanson 문헌연결: A-B(부품1)+B-C(부품2)→ 직접 엣지 없는 **미검증 신규 A-C**. `DistantHybridization`을
+gene 그래프 위에서 연산화한 것 — "먼 domain + 중간 evidence 유사도"를 중간항(B) 탐색으로 구조화한다.
+
+```python
+def abc_link(genes) -> list[Candidate]:
+    kg = build_gene_graph(genes)                   # gene-extraction.md §7
+    for A, C in distant_pairs(kg):                 # 직접 엣지 없는(미연결) 쌍
+        B = AI_find_bridge(A, C, kg)               # 공유 control_primitive 등 중간항
+        if B and AI_is_nonobvious(A, C, B):
+            yield make_candidate(parents=[A, B, C], path="ABCLink")
+```
+- 정박: DriftDossier(A: 임상 drift 감지) — PnR(B: 비-응답 점수화) — ReleaseMesh(C: 배포 게이트) →
+  중간항 PnR의 "absence scoring"이 A·C를 잇는 비자명 다리 → "배포되지 *않은* drift 보고의무".
+- parts ≥ 2 (ABC는 자연히 ≥3). A-C가 기존 fingerprint/코퍼스명과 충돌하면 Phase2b hard-reject로 회수.
+- 정본 → `idea-layer.md §5.6`.
 
 ---
 
@@ -150,11 +168,12 @@ def AI_integrate_system(primitive_shelf) -> list[Candidate]:
 ## 4. 생성 PPR (Phase 2 전체)
 
 ```python
-def generate_candidates(inv: dict, k: int = 12) -> list[Candidate]:
+def generate_candidates(inv: dict, kernel: Optional[dict] = None, k: int = 12) -> list[Candidate]:
     [parallel]
     recombine = (AI_distant_hybridize(inv, 0.65)
                  + AI_layer_fusion(inv["layer"])
-                 + AI_conflict_compile(inv["primitive"]))
+                 + AI_conflict_compile(inv["primitive"])
+                 + abc_link(inv["genes"]))                 # idea-layer P6 (RECOMBINE 합류)
     mutate    = (AI_make_lens_apply(inv["primitive"], inv["lens"])
                  + AI_mutate_grammar(inv, banned=OVERUSED)
                  + AI_invert_negative_space(inv["primitive"]))
@@ -162,14 +181,26 @@ def generate_candidates(inv: dict, k: int = 12) -> list[Candidate]:
                  + AI_integrate_system(inv["primitive"]))
     [/parallel]
     cands = recombine + mutate + transplant
+    if kernel:                                             # idea-layer: 무작위 아닌 의도 지향 편향
+        cands = bias_by_kernel(cands, kernel)              # problem_frame·lens_stack·anti_examples 반영
     cands = [c for c in cands if len(c["parts"]) >= 2]      # 코퍼스 기반성 강제
-    return AI_dedupe_candidates(cands)[:k]
+    cands = AI_dedupe_candidates(cands)[:k]
+    if kernel:
+        cands = generate_debate_evolve(cands, max_rounds=2)  # idea-layer P3 (발산 뒤 비판→진화)
+    return cands
     # acceptance_criteria:
     #   - 각 후보 gen_path·tool·applied_lenses·single_question 보유
     #   - parts ≥ 2 (B 권장 3, 하한 2 강제)
     #   - 이름/mechanism 과밀 어휘 없음
+    #   - kernel 제공 시 각 후보 idea_trace.kernel_id 보유 (idea-layer)
 
 OVERUSED = ["mesh","clearing-market","generic ledger","simple gate","escrow","marketplace"]
 ```
 
-산출: `.recreate/candidates.md` (각 후보의 조합·도구·lens·질문).
+> **idea-layer 편향·진화 (가산, kernel 있을 때만)**: `bias_by_kernel`은 3경로×8도구를 무작위가 아니라
+> `kernel.problem_frame`/`lens_stack`로 목적 지향 편향하고, `anti_examples`를 회피한다.
+> `generate_debate_evolve`는 발산 1회로 끝내지 않고 `reflection_critic`(feasibility/novelty/verifiability/
+> weakness)→ 진화(흡수 재조합, 병합 아님)를 `max_rounds` 반복하다 안정화 시 조기 종료. kernel이 없으면
+> 기존 1-shot 발산 그대로(동작 불변). 정본·시그니처 → `idea-layer.md §4·§5.3`.
+
+산출: `.recreate/candidates.md` (각 후보의 조합·도구·lens·질문 + idea_trace).

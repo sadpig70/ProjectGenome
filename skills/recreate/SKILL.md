@@ -132,7 +132,7 @@ single_question        # "이 X에 대해 Y인가?" — 한 줄 질문
 ## 파이프라인 (Gantree)
 
 ```text
-RecreateMethod // 코퍼스 → 새 프로젝트 DesignSeed (in-progress) @v:2.1
+RecreateMethod // 코퍼스 → 새 프로젝트 DesignSeed (in-progress) @v:2.2
     Phase0_Corpus // 재료 적재·정규화 + run 격리 (in-progress)
         LoadRegistry // .recreate/registry.json 로드 (없으면 빈 registry)
         CreateRunScope // .recreate/runs/{NNN}-pending/ 생성
@@ -147,28 +147,45 @@ RecreateMethod // 코퍼스 → 새 프로젝트 DesignSeed (in-progress) @v:2.1
         LayerShelf // 기능 계층별 슬롯 선반
         LensPalette // 변형 렌즈 팔레트 (L1~L25)
         VocabRegistry // 과밀 어휘 동적 충돌검사 테이블
+        GeneGraph // ABCLink 기질 — gene 경량 KG (idea-layer) #idea
         [/parallel]
-    Phase2_Generate // 3경로 × 8 발산도구 → 후보 K개 (designing) @dep:Phase1_Inventory
+    Phase1_5_IdeaKernel // 상류 의도 벡터 (idea-layer, 경량) (designing) @dep:Phase1_Inventory #idea
+        # input: registry(과거 gap) + inventory(negative-space) + triangulated primitives
+        # process: AI_make_idea_kernel → 6 primitive의 측정가능 목표 선언 (NoNameFirst)
+        # output: input_manifest.json 의 idea_kernel 블록
+    Phase2_Generate // 3경로 × 8 발산도구 → 후보 K개 (designing) @dep:Phase1_5_IdeaKernel
         [parallel]
-        GenRecombine // DistantHybridization + LayerFusion + ConflictCompiler
+        GenRecombine // DistantHybridization + LayerFusion + ConflictCompiler + ABCLink #idea
         GenMutate // LensApply + GrammarMutation + NegativeSpaceInversion
         GenTransplant // DomainTransplant + SystemIntegration
         [/parallel]
+        GenerateDebateEvolve // 발산 뒤 비판→진화 직렬 루프 (idea-layer P3) (designing) #idea
     Phase2b_Avoidance // 재실행 회피 (과거 run/생성물/소비 source) (designing) @dep:Phase2_Generate
         RejectGeneratedNameCollision // 결정론 hard-reject
         RejectSourceFingerprintCollision // 결정론 hard-reject
         RejectCorpusNameCollision // 결정론 hard-reject
         AssessConsumedSourcePenalty // AI_ 판정 우선 + 점수 로깅
+        DiversityGuard // 동질화 연속신호 soft 병치 (idea-layer P1) #idea
         EmitAvoidanceReport // 모든 판단 근거+점수 기록
     Phase3_Differentiate // 코퍼스 대비 의미 차별화 게이트 (designing) @dep:Phase2b_Avoidance
+        # overlap 이산임계 + unique_ratio 보조신호 (idea-layer P1) #idea
     Phase4_SelectOrIntegrate // 상보 통합 → 6축 선정 (designing) @dep:Phase3_Differentiate
         DetectComplementary // 같은 문제·다른 강점 군집 탐지 (overlap과 다른 신호)
         Integrate // 상보 군집을 제3 후보로 통합 (능가 시만 채택)
+        TournamentSelect // pairwise Elo + idea_fit, 절대점수와 병행 (idea-layer P2) #idea
         Select // 원본+통합 풀에서 6축 top K
     Phase5_Prove // 실증: 후보 brief 산출 + 자기검증 (designing) @dep:Phase4_SelectOrIntegrate
+        EvaluatorGate // 결정론 답변가능을 게이트로 승격 (idea-layer P4) #idea
     Phase6_SeedDesign // DesignSeed 출력 + run rename {NNN}-{winner} (designing) @dep:Phase5_Prove
+        CrossModelVerify // 합의·증거라벨 + idea_trace 첨부 (idea-layer P5) #idea
     Phase7_UpdateRegistry // winner·소비 source 누적 + latest.json 갱신 (designing) @dep:Phase6_SeedDesign
+        MeasureKernelGap // 의도 대비 달성 gap → 다음 kernel 조향 (idea-layer 폐루프) #idea
 ```
+
+> **Idea Layer (가산)**: `#idea` 노드는 메타 파이프라인층(아이디어 발견·평가)의 가산 앵커다. 기존
+> Phase0~7을 대체하지 않고 강화한다. IdeaKernel(상류 의도) → 6 게이트(하류 측정) → kernel_gap(환류)의
+> 폐쇄 제어 루프. **결정론 경계**: `#idea` 게이트는 `AI_` 비결정론(메타층)이며, 생성물 verdict 경로와
+> Phase2b 이산 hard-reject는 결정론 불변. 정본 → `reference/idea-layer.md`.
 
 > **2게이트 분리**: `Phase2b_Avoidance`(과거 run·생성물 회피)와 `Phase3_Differentiate`(코퍼스 대비 차별화)는
 > 보는 대상·신호가 다르다 — 생성 프로젝트는 코퍼스 스캔에서 제외되므로 Phase3가 못 보고, 이름/fingerprint
@@ -179,14 +196,15 @@ RecreateMethod // 코퍼스 → 새 프로젝트 DesignSeed (in-progress) @v:2.1
 ```python
 load_registry + create_run_scope + input_manifest   # 격리 + 생성물 제외
   → build_genes            # 코퍼스(생성물 제외) → 3축 ProjectGene
-  → build_inventory        # [parallel] 형태/속성/기능 선반 + lens + vocab
-  → generate_candidates    # [parallel] 3경로 × 8 발산도구 → K=12 후보
-  → avoidance_gate (each)  # 과거 run/생성물 회피: hard-reject + AI penalty → avoidance_report
-  → differentiate (each)   # 코퍼스 대비 overlap + tag_clash + vocab_clash 게이트
-  → select_or_integrate    # 상보(complementarity) 군집 통합 → 원본+통합 풀에서 6축 top 5
-  → prove                  # 실제 brief 산출 + 자기검증 (0개면 실패)
-  → emit_design_seed       # runs/{run_id}/DESIGN-SEED-{Name}.md  (run rename)
-  → update_registry        # winner·소비 source 누적 + latest.json
+  → build_inventory        # [parallel] 형태/속성/기능 선반 + lens + vocab + gene_graph(idea)
+  → make_idea_kernel       # idea: 상류 의도 — 6 primitive 목표 선언 (NoNameFirst)
+  → generate_candidates    # [parallel] 3경로 × 8 발산도구(+ABCLink) → K=12 후보 → debate_evolve(idea)
+  → avoidance_gate (each)  # 과거 run/생성물 회피: hard-reject + AI penalty (+DiversityGuard idea) → avoidance_report
+  → differentiate (each)   # 코퍼스 대비 overlap + tag_clash + vocab_clash (+unique_ratio idea) 게이트
+  → select_or_integrate    # 상보 군집 통합 → 6축 top 5 (+tournament/idea_fit idea, margin 낮으면 cross-model)
+  → prove                  # 실제 brief 산출 + 자기검증 (0개면 실패) + evaluator_gate(idea)
+  → emit_design_seed       # runs/{run_id}/DESIGN-SEED-{Name}.md (+idea_trace) (run rename)
+  → update_registry        # winner·소비 source 누적 + latest.json + idea_outcome/kernel_gap(idea 폐루프)
   → /pgf full-cycle {Name} # 설계→계획→실행→검증 (핸드오프, run-scoped seed 참조)
 ```
 
@@ -315,6 +333,7 @@ DESIGN은 archetype·reuse_plan·verdict_scheme을 Gantree+PPR로 전개한다.
 | `reference/rerun-avoidance.md` | run 격리·registry·input_manifest 계약, 2게이트 분리, 회피 알고리즘 | Phase 0/2b/7 (재실행) |
 | `reference/differentiation.md` | 정량 게이트 임계, vocab registry, 6축 평가 루브릭, select-or-integrate | Phase 3~5 |
 | `reference/design-seed.md` | DesignSeed 계약, 필드 매핑, pgf full-cycle 핸드오프 | Phase 6 (seed) |
+| `reference/idea-layer.md` | IdeaKernel·6 게이트·폐쇄 제어 루프 (메타 파이프라인 가산 레이어) | Phase 1.5~7 (`#idea` 노드) |
 
 > PG 표기법(Gantree/PPR/AI_/→/[parallel])과 PGF 실행 모드는 `pg`·`pgf` 스킬이 정본이다. 중복 정의하지 않는다.
 
@@ -335,3 +354,5 @@ DESIGN은 archetype·reuse_plan·verdict_scheme을 Gantree+PPR로 전개한다.
 - domain_demand·system_potential은 외부 신호 없이 AI 판단 — 시장 검증은 범위 밖.
 - RECOMBINE이 이종 아키타입 엔진을 stack 시 verdict_scheme 충돌 가능 — DESIGN에서 해소.
 - GrammarMutation 신문법도 재포화 가능 — vocab_registry 동적 충돌검사로 완화하되 완전 차단 아님.
+- idea-layer 게이트(DiversityGuard/Tournament/CrossModel 등)는 `AI_` 비결정론 — 메타층 한정. 생성물
+  verdict 경로와 Phase2b 이산 hard-reject는 결정론 불변. 임베딩 임계(cos 0.8)는 차용값으로 재보정 대상.

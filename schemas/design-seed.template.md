@@ -38,3 +38,13 @@
 
 ## 차별점 (differentiation_note)
 {최근접 siblings 대비 왜 다른가}
+
+## Idea Trace (idea-layer, 선택)
+<!-- idea-layer가 켜진 run에서만 채운다. 없으면 위 필드만으로 유효. 정본: skills/recreate/reference/idea-layer.md -->
+- kernel_id: {IK-NNN}
+- problem_frame: {어떤 결핍/마찰/비대칭}
+- method_archetype: {source_grounded_linking / program_search / ...}
+- deterministic_engine_hint: {MVP 결정론 엔진이 답할 단일 질문 — EvaluatorGate 통과 근거}
+- proof_surface: {CLI / report / test / fixture}
+- strength_label: {verified | claimed}
+- why_not_existing_projects: {anti_examples 대비 차별}
